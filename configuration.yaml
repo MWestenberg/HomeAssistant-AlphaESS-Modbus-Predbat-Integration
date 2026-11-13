@@ -15,8 +15,8 @@ scene: !include scenes.yaml
 # PREDAT IMPORT & EXPORT PRICE TEMPLATES (Nordpool)
 # -------------------------------------------------------------------
 input_number:
-  energy-tax:
-    name: "energy-tax"
+  energy_tax":
+    name: "energy_tax""
     min: 0.0
     max: 1.0
     step: 0.001
@@ -24,8 +24,8 @@ input_number:
     unit_of_measurement: "€"
     icon: mdi:currency-eur
 
-  import-cost:
-    name: "import-cost"
+  import_cost:
+    name: "import_cost"
     min: 0.0
     max: 1.0
     step: 0.001
@@ -33,8 +33,8 @@ input_number:
     unit_of_measurement: "€"
     icon: mdi:currency-eur
     
-  export-cost:
-    name: "export-cost"
+  export_cost:
+    name: "export_cost"
     min: -1.0
     max: 1.0
     step: 0.001
@@ -82,16 +82,16 @@ template:
         unit_of_measurement: "EUR/kWh"
         state: >
           {% set market_price = states('<NORDPOOL CURRENT MARKET PRICE SENSOR>') | float(0) %}
-          {% set eTax = states('input_number.energy-tax') | float(0) %}
+          {% set eTax = states('input_number.energy_tax"') | float(0) %}
           {% set vat = states('input_number.vat') | float(0) %}
-          {% set import_cost = states('input_number.import-cost') | float(0) %}
+          {% set import_cost = states('input_number.import_cost') | float(0) %}
           {{ ((market_price + eTax + import_cost) * vat) | round(5) }}
         attributes:
           raw_today: >
             {% set ns = namespace(items=[]) %}
-            {% set eTax = states('input_number.energy-tax') | float(0) %}
+            {% set eTax = states('input_number.energy_tax"') | float(0) %}
             {% set vat = states('input_number.vat') | float(0) %}
-            {% set import_cost = states('input_number.import-cost') | float(0) %}
+            {% set import_cost = states('input_number.import_cost') | float(0) %}
             {% if nordpool_today is defined and nordpool_today.<YOUR AREA> is defined %}
               {% for item in nordpool_today.<YOUR AREA> %}
                 {% set price = ((item.price / 1000) + eTax + import_cost) | round(5) %}
@@ -107,9 +107,9 @@ template:
             {{ ns.items }}
           raw_tomorrow: >
             {% set ns = namespace(items=[]) %}
-            {% set eTax = states('input_number.energy-tax') | float(0) %}
+            {% set eTax = states('input_number.energy_tax"') | float(0) %}
             {% set vat = states('input_number.vat') | float(0) %}
-            {% set import_cost = states('input_number.import-cost') | float(0) %}
+            {% set import_cost = states('input_number.import_cost') | float(0) %}
             {% if nordpool_tomorrow is defined and nordpool_tomorrow.<YOUR AREA> is defined %}
               {% for item in nordpool_tomorrow.<YOUR AREA> %}
                 {% set price = ((item.price / 1000) + eTax + import_cost) | round(5) %}
@@ -129,15 +129,15 @@ template:
         unit_of_measurement: "EUR/kWh"
         state: >
           {% set market_price = states('<NORDPOOL CURRENT MARKET PRICE SENSOR>') | float(0) %}
-          {% set export_cost = states('input_number.export-cost') | float(-0.016) %}
-          {% set eTax = states('input_number.energy-tax') | float(0) %}
+          {% set export_cost = states('input_number.export_cost') | float(-0.016) %}
+          {% set eTax = states('input_number.energy_tax"') | float(0) %}
           {% set vat = states('input_number.vat') | float(0) %}
           {{ (((market_price + export_cost + eTax) * vat)) | round(5) }}
         attributes:
           raw_today: >
             {% set ns = namespace(items=[]) %}
-            {% set export_cost = states('input_number.export-cost') | float(-0.016) %}
-            {% set eTax = states('input_number.energy-tax') | float(0) %}
+            {% set export_cost = states('input_number.export_cost') | float(-0.016) %}
+            {% set eTax = states('input_number.energy_tax"') | float(0) %}
             {% set vat = states('input_number.vat') | float(0) %}
             {% if nordpool_today is defined and nordpool_today.<YOUR AREA> is defined %}
               {% for item in nordpool_today.<YOUR AREA> %}
@@ -154,8 +154,8 @@ template:
             {{ ns.items }}
           raw_tomorrow: >
             {% set ns = namespace(items=[]) %}
-            {% set export_cost = states('input_number.export-cost') | float(-0.016) %}
-            {% set eTax = states('input_number.energy-tax') | float(0) %}
+            {% set export_cost = states('input_number.export_cost') | float(-0.016) %}
+            {% set eTax = states('input_number.energy_tax"') | float(0) %}
             {% set vat = states('input_number.vat') | float(0) %}
             {% if nordpool_tomorrow is defined and nordpool_tomorrow.<YOUR AREA> is defined %}
               {% for item in nordpool_tomorrow.<YOUR AREA> %}
