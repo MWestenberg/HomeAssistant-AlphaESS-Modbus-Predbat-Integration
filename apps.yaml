@@ -74,10 +74,10 @@ pred_bat:
   discharge_control: "automatic"
   
   # --- CHARGE AND DISCHARGE WINDOWS (Mandatory in GE-mode) ---
-  charge_start_time: "input_datetime.alphaess_helper_charging_period_1_start"
-  charge_end_time: "input_datetime.alphaess_helper_charging_period_1_stop"
-  discharge_start_time: "input_datetime.alphaess_helper_discharging_period_1_start"
-  discharge_end_time: "input_datetime.alphaess_helper_discharging_period_1_stop"
+  #charge_start_time: "input_datetime.alphaess_helper_charging_period_1_start"
+  #charge_end_time: "input_datetime.alphaess_helper_charging_period_1_stop"
+  #discharge_start_time: "input_datetime.alphaess_helper_discharging_period_1_start"
+  #discharge_end_time: "input_datetime.alphaess_helper_discharging_period_1_stop"
 
   # --- MODBUS HELPERS / CONTROL ENTITIES ---
   charge_enable: "input_boolean.alphaess_helper_force_charging"
