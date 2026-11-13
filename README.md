@@ -164,4 +164,6 @@ metric_octopus_import: sensor.predbat_import_rates
 metric_octopus_export: sensor.predbat_export_rates
 ```
 
+5. The final step is to create an automation that dispatches the commands from your Predbat to your AlphaESS Modbus integration. Check the file I added and change the entities where required to the owns you have.
+
 I logged this here because of the amount of trouble I had to go through to figure this out. I hope this has helped you. The result yaml from sensor is actually the generic input Predbat expects and can be applied to other Energy price integrations as well.
