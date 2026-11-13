@@ -1,0 +1,172 @@
+homeassistant:
+  packages: !include_dir_named packages #location of AlphaESS Modbus integration
+default_config:
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+
+# -------------------------------------------------------------------
+# PREDAT IMPORT & EXPORT PRICE TEMPLATES (Nordpool)
+# -------------------------------------------------------------------
+input_number:
+  energy-tax:
+    name: "energy-tax"
+    min: 0.0
+    max: 1.0
+    step: 0.001
+    initial: 0.092
+    unit_of_measurement: "€"
+    icon: mdi:currency-eur
+
+  import-cost:
+    name: "import-cost"
+    min: 0.0
+    max: 1.0
+    step: 0.001
+    initial: 0.016
+    unit_of_measurement: "€"
+    icon: mdi:currency-eur
+    
+  export-cost:
+    name: "export-cost"
+    min: -1.0
+    max: 1.0
+    step: 0.001
+    initial: -0.016
+    unit_of_measurement: "€"
+    icon: mdi:currency-eur
+    
+  vat:
+    name: "vat"
+    min: 1
+    max: 2
+    step: 0.001
+    initial: 1.21
+    icon: mdi:percent
+
+
+template:
+  - trigger:
+      - trigger: homeassistant
+        event: start
+      - trigger: time_pattern
+        hours: "/1"
+    action:
+      - action: nordpool.get_price_indices_for_date
+        data:
+          config_entry: 01M72MFVSER5PW4RJF8WAEET89
+          date: "{{ now().strftime('%Y-%m-%d') }}"
+          areas:
+            - NL
+          currency: EUR
+          resolution: '60'
+        response_variable: nordpool_today
+      - action: nordpool.get_price_indices_for_date
+        data:
+          config_entry: 01M72MFVSER5PW4RJF8WAEET89
+          date: "{{ (now() + timedelta(days=1)).strftime('%Y-%m-%d') }}"
+          areas:
+            - NL
+          currency: EUR
+          resolution: '60'
+        response_variable: nordpool_tomorrow
+    sensor:
+      - name: "Predbat Import Rates"
+        unique_id: predbat_import_rates_nordpool
+        unit_of_measurement: "EUR/kWh"
+        state: >
+          {% set kale = states('sensor.thuis_nord_pool_nl_huidige_prijs') | float(0) %}
+          {% set eb = states('input_number.energy-tax') | float(0) %}
+          {% set vat = states('input_number.vat') | float(0) %}
+          {% set inkoop = states('input_number.import-cost') | float(0) %}
+          {{ ((kale + eb + inkoop) * vat) | round(5) }}
+        attributes:
+          raw_today: >
+            {% set ns = namespace(items=[]) %}
+            {% set eb = states('input_number.energy-tax') | float(0) %}
+            {% set vat = states('input_number.vat') | float(0) %}
+            {% set inkoop = states('input_number.import-cost') | float(0) %}
+            {% if nordpool_today is defined and nordpool_today.NL is defined %}
+              {% for item in nordpool_today.NL %}
+                {% set price = ((item.price / 1000) + eb + inkoop) | round(5) %}
+                {% set price_vat = (price * vat) | round(5) %}
+                {% set ns.items = ns.items + [{
+                  'start': item.start,
+                  'end': item.end,
+                  'value': price,
+                  'value_inc_vat': price_vat
+                }] %}
+              {% endfor %}
+            {% endif %}
+            {{ ns.items }}
+          raw_tomorrow: >
+            {% set ns = namespace(items=[]) %}
+            {% set eb = states('input_number.energy-tax') | float(0) %}
+            {% set vat = states('input_number.vat') | float(0) %}
+            {% set inkoop = states('input_number.import-cost') | float(0) %}
+            {% if nordpool_tomorrow is defined and nordpool_tomorrow.NL is defined %}
+              {% for item in nordpool_tomorrow.NL %}
+                {% set price = ((item.price / 1000) + eb + inkoop) | round(5) %}
+                {% set price_vat = (price * vat) | round(5) %}
+                {% set ns.items = ns.items + [{
+                  'start': item.start,
+                  'end': item.end,
+                  'value': price,
+                  'value_inc_vat': price_vat
+                }] %}
+              {% endfor %}
+            {% endif %}
+            {{ ns.items }}
+
+      - name: "Predbat Export Rates"
+        unique_id: predbat_export_rates_nordpool
+        unit_of_measurement: "EUR/kWh"
+        state: >
+          {% set kale = states('sensor.thuis_nord_pool_nl_huidige_prijs') | float(0) %}
+          {% set verkoop = states('input_number.export-cost') | float(-0.016) %}
+          {% set eb = states('input_number.energy-tax') | float(0) %}
+          {% set vat = states('input_number.vat') | float(0) %}
+          {{ (((kale + verkoop + eb) * vat)) | round(5) }}
+        attributes:
+          raw_today: >
+            {% set ns = namespace(items=[]) %}
+            {% set verkoop = states('input_number.export-cost') | float(-0.016) %}
+            {% set eb = states('input_number.energy-tax') | float(0) %}
+            {% set vat = states('input_number.vat') | float(0) %}
+            {% if nordpool_today is defined and nordpool_today.NL is defined %}
+              {% for item in nordpool_today.NL %}
+                {% set price = ((item.price / 1000) + verkoop + eb) | round(5) %}
+                {% set price_vat = (price * vat) | round(5) %}
+                {% set ns.items = ns.items + [{
+                  'start': item.start,
+                  'end': item.end,
+                  'value': price,
+                  'value_inc_vat': price_vat
+                }]%}
+              {% endfor %}
+            {% endif %}
+            {{ ns.items }}
+          raw_tomorrow: >
+            {% set ns = namespace(items=[]) %}
+            {% set verkoop = states('input_number.export-cost') | float(-0.016) %}
+            {% set eb = states('input_number.energy-tax') | float(0) %}
+            {% set vat = states('input_number.vat') | float(0) %}
+            {% if nordpool_tomorrow is defined and nordpool_tomorrow.NL is defined %}
+              {% for item in nordpool_tomorrow.NL %}
+                {% set price = ((item.price / 1000) + verkoop + eb) | round(5) %}
+                {% set price_vat = (price * vat) | round(5) %}
+                {% set ns.items = ns.items + [{
+                  'start': item.start,
+                  'end': item.end,
+                  'value': price,
+                  'value_inc_vat': price_vat
+                }]%}
+              {% endfor %}
+            {% endif %}
+            {{ ns.items }}
