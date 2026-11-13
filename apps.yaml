@@ -1,0 +1,114 @@
+pred_bat:
+  module: predbat
+  class: PredBat
+
+  prefix: predbat
+  timezone: Europe/Amsterdam
+  currency_symbols:
+    - '€'
+    - 'c'
+  expert_mode: true
+  threads: auto
+  template: False
+
+  # --- set to true if you do not want predbat to take control---
+  read_only: false
+
+  # Inverter settings
+  inverter_type: "AlphaESS_Modbus"
+  inverter:
+    has_ge_inverter_mode: false
+    has_discharge_enable_time: true
+    
+  inverter_limit: 10000
+  inverter_battery_rate_max: 10000
+  
+  # battery settings (I have a the AlphaESS SMILE-G3 10kWh inverter with 2x 9.3kWh Batteries
+  num_batteries: 1 # I have to but they are connected in serial not parallel
+  battery_capacity: "sensor.alphaess_battery_capacity" # see modbus integration
+  battery_rate_max: 10000 # Max power delivery of hybrid inverter in Watts
+  inverter_limit_charge: # how much you alllow charging just put it to max and let predbat control it
+    - 10000
+  inverter_limit_discharge: # how much you alllow discharging
+    - 10000
+  inverter_limit_charge_dc: 10500 # this is your PV installation
+  battery_loss: "input_number.predbat_battery_loss" # I made  a helper to set this
+  soc_percent: "sensor.alphaess_soc_battery" # Sensor from Modbus integration (current battery charge in %)
+  soc_max: sensor.alphaess_battery_capacity  # Sensor from Modbus integration (max battery capacity, 18.6 in my case)
+  # I added this to stop the warnings. It is a standard battery curve profile for a new battery setup
+  battery_charge_power_curve: 
+    98: 1.0
+    99: 0.9
+    100: 0.5
+  battery_discharge_power_curve:
+    0: 0.5
+    1: 1.0
+    100: 1.0
+  
+  # --- Actual or current measurements ---
+  battery_power:
+    - "sensor.alphaess_power_battery" 
+  battery_power_invert: #AlphaESS Modbus is negative for discharge and positive for charge
+    - false
+  grid_power:
+    - "sensor.alphaess_power_grid"
+  grid_power_invert: # Same as battery power invert
+    - false
+  pv_power: # current PV power delivery
+    - "sensor.alphaess_current_pv_production"
+  load_power: # current usage that my house requires.
+    - "sensor.alphaess_current_house_load"
+
+  # --- Day Totals ---
+  load_today:
+    - "sensor.alphaess_today_s_house_load"
+  pv_today:
+    - "sensor.alphaess_today_s_energy_from_pv"
+  import_today:
+    - "sensor.alphaess_today_s_energy_consumption_from_grid_meter"
+  export_today:
+    - "sensor.alphaess_today_s_energy_feed_to_grid_meter"
+  
+  # Activation of control, this can be set in Predbat GUI
+  charge_control: "automatic"
+  discharge_control: "automatic"
+  
+  # --- CHARGE AND DISCHARGE WINDOWS (Mandatory in GE-mode) ---
+  charge_start_time: "input_datetime.alphaess_helper_charging_period_1_start"
+  charge_end_time: "input_datetime.alphaess_helper_charging_period_1_stop"
+  discharge_start_time: "input_datetime.alphaess_helper_discharging_period_1_start"
+  discharge_end_time: "input_datetime.alphaess_helper_discharging_period_1_stop"
+
+  # --- MODBUS HELPERS / CONTROL ENTITIES ---
+  charge_enable: "input_boolean.alphaess_helper_force_charging"
+  discharge_enable: "input_boolean.alphaess_helper_force_discharging"
+
+  # Numeric helpers in Watts how much power for charge and discharge your batter should be in
+  charge_rate: "input_number.predbat_charge_rate" 
+  discharge_rate: "input_number.predbat_discharge_rate" 
+
+  # These are from predbat
+  scheduled_charge_enable: "input_boolean.predbat_charge_enable"
+  scheduled_discharge_enable: "input_boolean.predbat_discharge_enable"
+  reserve: "input_number.predbat_reserve_soc"
+  charge_limit: "input_number.predbat_charge_limit"
+  
+  # --- CAR CONFIG check docs ---
+  num_cars: 1
+  car_charging_battery_size: [19.0] # add the battery size of your car
+  car_charging_energy:  # Add your daily charging total sensors here from your charger integration if you have it
+  car_charging_hold: true # Optioneel: laat Predbat auto-laaddata filteren uit de historische huisbelasting
+  
+  
+  # --- SOLCAST FORCASTING ---
+  pv_forecast_today: "sensor.solcast_pv_forecast_voorspelling_vandaag" # Sensor for today in this case mine for solcast
+  pv_forecast_tomorrow: "sensor.solcast_pv_forecast_voorspelling_morgen" # senbor for tomorrow
+
+  #NORDPOOL IMPORT AND EXPORT RATES
+  metric_octopus_import: sensor.predbat_import_rates
+  metric_octopus_export: sensor.predbat_export_rates
+  metric_standing_charge: 0
+  
+  # --- INTERVAL SETTINGS IN MINUTES ---
+  plan_interval_minutes: 60 # My interval is per hour some do every 30 or 15 min
+  solar_interval_minutes: 60 # This is normally set to 30 min but is conflicting with my 60 min interval thus I set it to 60
