@@ -1,5 +1,5 @@
-alias: Predbat to AlphaESS Modbus Dispatch
-description: Tranlates Predbat status and Watt to AlphaESS kW Modbus dispatch helpers
+alias: Predbat naar AlphaESS Modbus Dispatch
+description: Vertaalt Predbat status en Watt naar AlphaESS kW Modbus dispatch helpers
 triggers:
   - trigger: state
     entity_id:
@@ -14,6 +14,10 @@ triggers:
     entity_id: predbat.status
     attribute: run_state
 actions:
+  - variables:
+      pb_status: >-
+        {{ (states('predbat.status') ~ ' ' ~ (state_attr('predbat.status',
+        'run_state') | string)) }}
   - choose:
       - conditions:
           - condition: state
@@ -81,15 +85,25 @@ actions:
               entity_id: input_boolean.alphaess_helper_force_discharging
       - conditions:
           - condition: template
-            value_template: >-
-              {{ 'Freeze' in (state_attr('predbat.status', 'run_state') |
-              string) }}
+            value_template: '{{ ''Freeze'' in pb_status or ''Hold'' in pb_status }}'
         sequence:
           - action: input_boolean.turn_off
             target:
               entity_id:
                 - input_boolean.alphaess_helper_force_charging
                 - input_boolean.alphaess_helper_force_discharging
+          - action: input_select.select_option
+            target:
+              entity_id: input_select.alphaess_helper_dispatch_mode
+            data:
+              option: >-
+                {{ state_attr('input_select.alphaess_helper_dispatch_mode',
+                'options') | select('search', '1') | first | default('1') }}
+          - action: input_number.set_value
+            target:
+              entity_id: input_number.alphaess_helper_dispatch_duration
+            data:
+              value: 60
           - action: input_number.set_value
             target:
               entity_id: input_number.alphaess_helper_dispatch_power
