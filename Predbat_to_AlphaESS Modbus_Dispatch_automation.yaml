@@ -1,7 +1,6 @@
-alias: AlphaESS - Predbat Koppeling
+alias: AlphaESS - Predbat Modbus integration
 description: >-
-  Stuurt AlphaESS Modbus Dispatch aan met volledige register-aansturing voor
-  zowel Charging als Exporting
+  Sends A AlphaESS Modbus Dispatch to AlphaESS registers
 triggers:
   - trigger: state
     entity_id: predbat.status
